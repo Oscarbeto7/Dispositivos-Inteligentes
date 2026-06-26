@@ -77,6 +77,28 @@ class MainActivity : AppCompatActivity(),
             // Mostrar la alerta
             val alerta = builder.create()
             alerta.show()
+
+            // --- NUEVOS BOTONES PARA HTTP ---
+            val btnGet = findViewById<Button>(R.id.btnGet)
+            val btnPost = findViewById<Button>(R.id.btnPost)
+
+            btnGet.setOnClickListener {
+                // Hacemos un GET a la API de prueba
+                hacerGet("https://jsonplaceholder.typicode.com/posts/1")
+            }
+
+            btnPost.setOnClickListener {
+                // Hacemos un POST simulando que guardamos información desde el celular
+                val jsonParaGuardar = """
+                {
+                  "title": "Prueba de App",
+                  "body": "Guardando información desde mi celular",
+                  "userId": 100
+                }
+            """.trimIndent()
+
+                hacerPost("https://jsonplaceholder.typicode.com/posts", jsonParaGuardar)
+            }
         }
     }
 
@@ -152,6 +174,57 @@ class MainActivity : AppCompatActivity(),
 
     override fun onCapabilityChanged(p0: CapabilityInfo) {
         TODO("Not yet implemented")
+
+    }
+    // --- FUNCIONES HTTP (Páginas 34 y 35) ---
+    private fun hacerGet(url: String) {
+        val client = okhttp3.OkHttpClient()
+        val request = okhttp3.Request.Builder().url(url).build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+                android.util.Log.d("FETCH", "Error GET: ${e.message}")
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        android.util.Log.d("FETCH", "Error en la respuesta GET: ${response.code}")
+                    } else {
+                        val responseData = response.body?.string()
+                        android.util.Log.d("FETCH", "Respuesta GET exitosa: $responseData")
+                    }
+                }
+            }
+        })
+    }
+
+    private fun hacerPost(url: String, jsonString: String) {
+        val client = okhttp3.OkHttpClient()
+        val JSON = okhttp3.MediaType.parse("application/json; charset=utf-8")
+        val body = okhttp3.RequestBody.create(JSON, jsonString)
+
+        val request = okhttp3.Request.Builder()
+            .url(url)
+            .post(body)
+            .build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+                android.util.Log.d("FETCH", "Error POST: ${e.message}")
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        android.util.Log.d("FETCH", "Error en la respuesta POST: ${response.code}")
+                    } else {
+                        val responseData = response.body?.string()
+                        android.util.Log.d("FETCH", "Respuesta POST exitosa: $responseData")
+                    }
+                }
+            }
+        })
     }
 }
 
